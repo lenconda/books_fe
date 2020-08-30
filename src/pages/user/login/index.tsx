@@ -1,45 +1,13 @@
 import { Checkbox, Form, Input, Button, message } from 'antd';
 import React, { useState } from 'react';
-import { Link } from 'umi';
+import { Link, history } from 'umi';
+import { Base64 } from 'js-base64';
 import logo from '@/assets/logo.svg';
-import { useForm } from 'antd/es/form/util';
 import { Store } from 'antd/es/form/interface';
 import styles from './styles.less';
+import { request } from '@/utils';
 
-// const LoginMessage: React.FC<{
-//   content: string;
-// }> = ({ content }) => (
-//   <Alert
-//     style={{
-//       marginBottom: 24,
-//     }}
-//     message={content}
-//     type="error"
-//     showIcon
-//   />
-// );
-
-// /**
-//  * 此方法会跳转到 redirect 参数所在的位置
-//  */
-// const replaceGoto = () => {
-//   const urlParams = new URL(window.location.href);
-//   const params = getPageQuery();
-//   let { redirect } = params as { redirect: string };
-//   if (redirect) {
-//     const redirectUrlParams = new URL(redirect);
-//     if (redirectUrlParams.origin === urlParams.origin) {
-//       redirect = redirect.substr(urlParams.origin.length);
-//       if (redirect.match(/^\/.*#/)) {
-//         redirect = redirect.substr(redirect.indexOf('#') + 1);
-//       }
-//     } else {
-//       window.location.href = '/';
-//       return;
-//     }
-//   }
-//   history.replace(redirect || '/');
-// };
+const useForm = Form.useForm;
 
 const Login: React.FC<{}> = () => {
   const [submitting, setSubmitting] = useState(false);
@@ -50,8 +18,20 @@ const Login: React.FC<{}> = () => {
   const handleSubmit = async (values: Store) => {
     setSubmitting(true);
     try {
-      // eslint-disable-next-line no-console
-      console.log(values);
+      const res = await request.post('/api/auth/login', values);
+
+      if (res.data.data.token) {
+        localStorage.setItem('token', res.data.data.token);
+      }
+
+      const encodedRedirectPath = history.location.query.redirect || '';
+
+      if (encodedRedirectPath) {
+        const redirectPath = Base64.decode(encodedRedirectPath);
+        history.push(redirectPath);
+      } else {
+        history.push('/');
+      }
     } catch (error) {
       message.error('登录失败，请重试！');
     }

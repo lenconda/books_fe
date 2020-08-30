@@ -1,8 +1,49 @@
 module.exports = {
-  extends: [require.resolve('@umijs/fabric/dist/eslint')],
-  globals: {
-    ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION: true,
-    page: true,
-    REACT_APP_ENV: true,
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
+  extends: [
+    'eslint-config-alloy/react',
+    'eslint-config-alloy/typescript',
+  ],
+  plugins: [
+    'react-hooks',
+  ],
+  globals: {},
+  parser: 'babel-eslint',
+  parserOptions: {
+    ecmaVersion: 2018,
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+    },
+  },
+  rules: {
+    indent: [
+      'error',
+      2,
+    ],
+    '@typescript-eslint/indent': 'off',
+    'react/jsx-indent-props': [
+      'error',
+      2,
+    ],
+    '@typescript-eslint/explicit-member-accessibility': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/consistent-type-assertions': 'off',
+    '@typescript-eslint/typedef': 'off',
+    'comma-dangle': ['error', 'always-multiline'],
+    'react/jsx-indent': [
+      'error',
+      2,
+    ],
+    'react-hooks/exhaustive-deps': 'off',
+    '@typescript-eslint/no-empty-interface': 'off',
+    'eol-last': 2,
+    quotes: [2, 'single'],
+    'jsx-quotes': ['error', 'prefer-double'],
+    'complexity': 'off',
   },
 };
