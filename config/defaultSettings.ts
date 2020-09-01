@@ -10,8 +10,9 @@ export default {
   fixSiderbar: true,
   colorWeak: false,
   menu: {
-    locale: true,
+    locale: false,
     defaultOpenAll: true,
+    disableLocal: true,
   },
   title: 'Books',
   pwa: false,

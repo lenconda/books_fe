@@ -14,7 +14,7 @@ module.exports = {
   globals: {},
   parser: 'babel-eslint',
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 2020,
     sourceType: 'module',
     ecmaFeatures: {
       jsx: true,
@@ -34,6 +34,7 @@ module.exports = {
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/consistent-type-assertions': 'off',
     '@typescript-eslint/typedef': 'off',
+    '@typescript-eslint/semi': 'off',
     'comma-dangle': ['error', 'always-multiline'],
     'react/jsx-indent': [
       'error',

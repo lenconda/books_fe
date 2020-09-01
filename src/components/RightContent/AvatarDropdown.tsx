@@ -60,7 +60,6 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
     return loading;
   }
 
-  console.log(initialState);
   const { currentUser } = initialState;
 
   // if (!currentUser || !currentUser.name) {

@@ -19,7 +19,7 @@ export default defineConfig({
   locale: {
     // default zh-CN
     default: 'zh-CN',
-    // default true, when it is true, will use `navigator.language` overwrite default
+    // // default true, when it is true, will use `navigator.language` overwrite default
     antd: false,
     baseNavigator: false,
   },
@@ -47,6 +47,19 @@ export default defineConfig({
       name: '控制台',
       icon: 'dashboard',
       component: './dashboard',
+    },
+    {
+      path: '/books',
+      name: '图书管理',
+      icon: 'book',
+      component: './books',
+    },
+    {
+      path: '/books/settlein',
+      name: '新书入库',
+      icon: 'add',
+      component: './books/settlein',
+      hideInMenu: true,
     },
     {
       path: '/',
