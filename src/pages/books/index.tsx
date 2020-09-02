@@ -12,7 +12,7 @@ export default (): React.ReactNode => {
 
   const queryBooks = (page: number = 1, size: number = 10) => {
     setLoading(true);
-    request.post('/api/book/all', { query: {} }).then(res => {
+    request.post('/api/book/all', { query: {}, page, size }).then(res => {
       const { items = [], total = 0 } = res.data.data || {};
       setBookItems(items);
       setTotal(total);
@@ -26,6 +26,10 @@ export default (): React.ReactNode => {
   useEffect(() => {
     queryBooks();
   }, []);
+
+  const handlePaginationChange = (page: number, size: number | undefined) => {
+    queryBooks(page, size);
+  };
 
   const columns = [
     {
@@ -51,13 +55,16 @@ export default (): React.ReactNode => {
       dataIndex: 'publisher',
       width: 200,
       key: 'publisher',
+      render: (text: string, record: any) => record['publisher'] || '-'
     },
     {
       title: '发行日期',
       dataIndex: 'publishDate',
       width: 200,
       key: 'publish_date',
-      render: (text: string, record: any) => new Date(Date.parse(record['publish_date'])).toLocaleDateString(),
+      render: (text: string, record: any) => record['publish_date']
+        ? new Date(Date.parse(record['publish_date'])).toLocaleDateString()
+        : '-',
     },
     {
       title: '库存量',
@@ -114,6 +121,7 @@ export default (): React.ReactNode => {
           pagination={{
             defaultCurrent: 1,
             total,
+            onChange: handlePaginationChange
           }}
           style={{ marginTop: 20 }}
         ></Table>
