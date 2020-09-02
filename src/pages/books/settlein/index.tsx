@@ -50,7 +50,7 @@ export default (): React.ReactNode => {
       fieldsValues['publish_date'] = moment(fieldsValues['publish_date']);
       fieldsValues['created_at'] = moment(fieldsValues['created_at']);
       fieldsValues['updated_at'] = moment(fieldsValues['updated_at']);
-      form.setFieldsValue(res.data.data)
+      form.setFieldsValue(fieldsValues);
     }).finally(() => setLoading(false));
   }
 

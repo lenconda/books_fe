@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Table, Button, Typography, Popconfirm } from 'antd';
+import { Card, Table, Button, Typography, Popconfirm, Form, Input, InputNumber } from 'antd';
 import { request } from '@/utils';
 import { history } from 'umi';
-// import styles from './styles.less';
+import styles from './styles.less';
 
 export const genderMap = {
   '0': '男',
@@ -14,10 +14,13 @@ export default (): React.ReactNode => {
   const [readerItems, setReaderItems] = useState<object[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
+  const [form] = Form.useForm();
 
-  const queryReaders = (page: number = 1, size: number = 10) => {
+  const { location } = history;
+
+  const queryReaders = (page: number = 1, size: number = 10, query = {}) => {
     setLoading(true);
-    request.post('/api/reader/all', { query: {}, page, size }).then(res => {
+    request.post('/api/reader/all', { query, page, size }).then(res => {
       const { items = [], total = 0 } = res.data.data || {};
       setReaderItems(items);
       setTotal(total);
@@ -29,11 +32,48 @@ export default (): React.ReactNode => {
   };
 
   useEffect(() => {
-    queryReaders();
-  }, []);
+    const { query } = location;
+    const { page = '1', size = '10' } = query;
+
+    const queryParams = ['name', 'id_card', 'phone'].reduce((res, key) => {
+      if (query[key]) {
+        res[key] = query[key];
+      }
+      return res;
+    }, {});
+
+    queryReaders(parseInt(page), parseInt(size), queryParams);
+  }, [location.query]);
 
   const handlePaginationChange = (page: number, size: number | undefined) => {
-    queryReaders(page, size);
+    const pathname = history.location.pathname;
+    const query = history.location.query || {};
+    history.push({
+      pathname,
+      query: {
+        ...query,
+        page,
+        size,
+      },
+    });
+  };
+
+  const handleQueryReaders = (values: any) => {
+    const query = Object.keys(values).reduce((res, key) => {
+      res[key] = values[key] || '';
+      return res;
+    }, {});
+    const { query: routeQuery, pathname } = location;
+    const { size = 10 } = routeQuery;
+    history.push({
+      pathname,
+      query: {
+        ...routeQuery,
+        ...query,
+        page: 1,
+        size,
+      },
+    });
   };
 
   const columns = [
@@ -69,7 +109,7 @@ export default (): React.ReactNode => {
       key: 'address',
     },
     {
-      title: '加入时间',
+      title: '登记时间',
       dataIndex: 'created_at',
       width: 200,
       key: 'created_at',
@@ -93,7 +133,7 @@ export default (): React.ReactNode => {
               title={`确定删除读者 ${record['name']}(${record['id_card']}) 的所有信息吗`}
               okText="确定"
               cancelText="取消"
-              onConfirm={e => deleteReader(record['isbn'])}
+              onConfirm={e => deleteReader(record['id_card'])}
             >
               <Button type="link">
                 <Typography.Text type="danger">删除</Typography.Text>
@@ -108,6 +148,31 @@ export default (): React.ReactNode => {
     <PageContainer>
       <Card className="content">
         <Button type="primary" onClick={() => history.push('/readers/info')}>读者登记</Button>
+        <Form
+          form={form}
+          layout="inline"
+          className={styles['query-wrapper']}
+          onFinish={handleQueryReaders}
+        >
+          <Form.Item name="name">
+            <Input placeholder="按姓名检索" />
+          </Form.Item>
+          <Form.Item name="id_card">
+            <Input placeholder="按身份证号检索" />
+          </Form.Item>
+          <Form.Item name="phone">
+            <InputNumber placeholder="按电话号码检索" style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">提交</Button>
+            <Button
+              style={{ margin: '0 8px' }}
+              onClick={() => {
+                form.resetFields();
+              }}
+            >清空</Button>
+          </Form.Item>
+        </Form>
         <Table
           rowKey="id_card"
           columns={columns}
@@ -116,6 +181,7 @@ export default (): React.ReactNode => {
           loading={loading}
           pagination={{
             defaultCurrent: 1,
+            current: location.query.page && parseInt(location.query.page) || 1,
             total,
             onChange: handlePaginationChange
           }}
