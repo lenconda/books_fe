@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Table, Button, Typography, Popconfirm, Form, Input, Col, Row } from 'antd';
+import { Card, Table, Button, Typography, Popconfirm, Form, Input } from 'antd';
 import { request } from '@/utils';
 import { history } from 'umi';
 import styles from './styles.less';
@@ -37,7 +37,6 @@ export default (): React.ReactNode => {
       return res;
     }, {});
 
-    console.log('asd', queryParams, query);
     queryBooks(parseInt(page), parseInt(size), queryParams);
   }, [location.query]);
 
