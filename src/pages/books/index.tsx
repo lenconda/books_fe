@@ -29,14 +29,21 @@ export default (): React.ReactNode => {
   useEffect(() => {
     const { query } = location;
     const { page = '1', size = '10' } = query;
+    const queryMap = ['name', 'isbn', 'publisher']
 
-    const queryParams = ['name', 'isbn', 'publisher'].reduce((res, key) => {
+    const queryParams = queryMap.reduce((res, key) => {
       if (query[key]) {
         res[key] = query[key];
       }
       return res;
     }, {});
 
+    const formQueryParams = queryMap.reduce((res, key) => {
+      res[key] = query[key] || '';
+      return res;
+    }, {});
+
+    form.setFieldsValue(formQueryParams);
     queryBooks(parseInt(page), parseInt(size), queryParams);
   }, [location.query]);
 
@@ -150,7 +157,7 @@ export default (): React.ReactNode => {
 
   return (
     <PageContainer>
-      <Card className="content">
+      <Card className="content query">
         <Button type="primary" onClick={() => history.push('/books/settlein')}>新书入库</Button>
         <Form
           form={form}
@@ -172,7 +179,11 @@ export default (): React.ReactNode => {
             <Button
               style={{ margin: '0 8px' }}
               onClick={() => {
-                form.resetFields();
+                const { page = 1, size = 10 } = location.query;
+                history.push({
+                  pathname: location.pathname,
+                  query: { page, size }
+                });
               }}
             >清空</Button>
           </Form.Item>

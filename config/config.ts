@@ -73,6 +73,24 @@ export default defineConfig({
       hideInMenu: true,
     },
     {
+      path: '/borrowing_records',
+      name: '借阅管理',
+      icon: 'container',
+      component: './borrowing_records',
+    },
+    {
+      path: '/borrowing_records/detail',
+      name: '借阅详情',
+      component: './borrowing_records/detail',
+      hideInMenu: true,
+    },
+    {
+      path: '/borrowing_records/borrow',
+      name: '借阅登记',
+      component: './borrowing_records/borrow',
+      hideInMenu: true,
+    },
+    {
       path: '/',
       redirect: '/dashboard',
     },

@@ -34,14 +34,21 @@ export default (): React.ReactNode => {
   useEffect(() => {
     const { query } = location;
     const { page = '1', size = '10' } = query;
+    const queryMap = ['name', 'id_card', 'phone'];
 
-    const queryParams = ['name', 'id_card', 'phone'].reduce((res, key) => {
+    const queryParams = queryMap.reduce((res, key) => {
       if (query[key]) {
         res[key] = query[key];
       }
       return res;
     }, {});
 
+    const formQueryParams = queryMap.reduce((res, key) => {
+      res[key] = query[key] || '';
+      return res;
+    }, {});
+
+    form.setFieldsValue(formQueryParams);
     queryReaders(parseInt(page), parseInt(size), queryParams);
   }, [location.query]);
 
@@ -146,7 +153,7 @@ export default (): React.ReactNode => {
 
   return (
     <PageContainer>
-      <Card className="content">
+      <Card className="content query">
         <Button type="primary" onClick={() => history.push('/readers/info')}>读者登记</Button>
         <Form
           form={form}
@@ -168,7 +175,11 @@ export default (): React.ReactNode => {
             <Button
               style={{ margin: '0 8px' }}
               onClick={() => {
-                form.resetFields();
+                const { page = 1, size = 10 } = location.query;
+                history.push({
+                  pathname: location.pathname,
+                  query: { page, size }
+                });
               }}
             >清空</Button>
           </Form.Item>
