@@ -57,8 +57,19 @@ export default defineConfig({
     {
       path: '/books/settlein',
       name: '新书入库',
-      icon: 'add',
       component: './books/settlein',
+      hideInMenu: true,
+    },
+    {
+      path: '/readers',
+      name: '读者管理',
+      icon: 'user',
+      component: './readers',
+    },
+    {
+      path: '/readers/info',
+      name: '读者登记',
+      component: './readers/info',
       hideInMenu: true,
     },
     {

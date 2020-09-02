@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Table, Button, Typography, Popconfirm } from 'antd';
+import { Card, Table, Button, Typography, Popconfirm, Form, Input, Col, Row } from 'antd';
 import { request } from '@/utils';
 import { history } from 'umi';
-// import styles from './styles.less';
+import styles from './styles.less';
 
 export default (): React.ReactNode => {
   const [bookItems, setBookItems] = useState<object[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
+  const [form] = Form.useForm();
 
-  const queryBooks = (page: number = 1, size: number = 10) => {
+  const { location } = history;
+
+  const queryBooks = (page: number = 1, size: number = 10, query = {}) => {
     setLoading(true);
-    request.post('/api/book/all', { query: {}, page, size }).then(res => {
+    request.post('/api/book/all', { query, page, size }).then(res => {
       const { items = [], total = 0 } = res.data.data || {};
       setBookItems(items);
       setTotal(total);
@@ -24,11 +27,49 @@ export default (): React.ReactNode => {
   };
 
   useEffect(() => {
-    queryBooks();
-  }, []);
+    const { query } = location;
+    const { page = '1', size = '10' } = query;
+
+    const queryParams = ['name', 'isbn', 'publisher'].reduce((res, key) => {
+      if (query[key]) {
+        res[key] = query[key];
+      }
+      return res;
+    }, {});
+
+    console.log('asd', queryParams, query);
+    queryBooks(parseInt(page), parseInt(size), queryParams);
+  }, [location.query]);
 
   const handlePaginationChange = (page: number, size: number | undefined) => {
-    queryBooks(page, size);
+    const pathname = history.location.pathname;
+    const query = history.location.query || {};
+    history.push({
+      pathname,
+      query: {
+        ...query,
+        page,
+        size,
+      },
+    });
+  };
+
+  const handleQueryBooks = (values: any) => {
+    const query = Object.keys(values).reduce((res, key) => {
+      res[key] = values[key] || '';
+      return res;
+    }, {});
+    const { query: routeQuery, pathname } = location;
+    const { size = 10 } = routeQuery;
+    history.push({
+      pathname,
+      query: {
+        ...routeQuery,
+        ...query,
+        page: 1,
+        size,
+      },
+    });
   };
 
   const columns = [
@@ -55,11 +96,11 @@ export default (): React.ReactNode => {
       dataIndex: 'publisher',
       width: 200,
       key: 'publisher',
-      render: (text: string, record: any) => record['publisher'] || '-'
+      render: (text: string, record: any) => record['publisher'] || '-',
     },
     {
       title: '发行日期',
-      dataIndex: 'publishDate',
+      dataIndex: 'publish_date',
       width: 200,
       key: 'publish_date',
       render: (text: string, record: any) => record['publish_date']
@@ -74,14 +115,14 @@ export default (): React.ReactNode => {
     },
     {
       title: '入库时间',
-      dataIndex: 'createdAt',
+      dataIndex: 'created_at',
       width: 200,
       key: 'created_at',
       render: (text: string, record: any) => new Date(Date.parse(record['created_at'])).toLocaleString(),
     },
     {
       title: '最近更新时间',
-      dataIndex: 'updatedAt',
+      dataIndex: 'updated_at',
       width: 200,
       key: 'updated_at',
       render: (text: string, record: any) => new Date(Date.parse(record['updated_at'])).toLocaleString(),
@@ -112,6 +153,31 @@ export default (): React.ReactNode => {
     <PageContainer>
       <Card className="content">
         <Button type="primary" onClick={() => history.push('/books/settlein')}>新书入库</Button>
+        <Form
+          form={form}
+          layout="inline"
+          className={styles['query-wrapper']}
+          onFinish={handleQueryBooks}
+        >
+          <Form.Item name="name">
+            <Input placeholder="按书名检索" />
+          </Form.Item>
+          <Form.Item name="isbn">
+            <Input placeholder="按 ISBN 检索" />
+          </Form.Item>
+          <Form.Item name="publisher">
+            <Input placeholder="按出版社名称检索" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">提交</Button>
+            <Button
+              style={{ margin: '0 8px' }}
+              onClick={() => {
+                form.resetFields();
+              }}
+            >清空</Button>
+          </Form.Item>
+        </Form>
         <Table
           rowKey="isbn"
           columns={columns}
@@ -120,6 +186,7 @@ export default (): React.ReactNode => {
           loading={loading}
           pagination={{
             defaultCurrent: 1,
+            current: location.query.page && parseInt(location.query.page) || 1,
             total,
             onChange: handlePaginationChange
           }}
