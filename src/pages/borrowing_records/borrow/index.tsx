@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Form, Input, Button, Select, InputNumber } from 'antd';
+import { Card, Form, Button, Select, DatePicker } from 'antd';
 import { request } from '@/utils';
 import { history } from 'umi';
+import debounce from 'lodash/debounce';
 // import styles from './styles.less';
 
 const layout = {
@@ -16,80 +17,114 @@ const tailLayout = {
 
 export default (): React.ReactNode => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState<boolean>(false);
+  const [submitLoading, setSubmitLoading] = useState<boolean>(false);
+  const [searchReaderLoading, setSearchReaderLoading] = useState<boolean>(false);
+  const [searchBookLoading, setSearchBookLoading] = useState<boolean>(false);
+  const [readersSearchResult, setReadersSearchResult] = useState<Record<string, any>[]>([]);
+  const [booksSearchResult, setBooksSearchResult] = useState<Record<string, any>[]>([]);
 
-  const { location } = history;
-  const { query } = location;
-
-  const handleSubmitReader = (values: any) => {
-    const data = Object.keys(values).reduce((res, key) => {
-      res[key] = values[key] || null;
-      return res;
-    }, {});
-
-    let handler;
-
-    if (query.id_card) {
-      handler = () => request.patch(`/api/reader/${query.id_card}`, data);
-    } else {
-      handler = () => request.post('/api/reader/add', data);
-    }
-
-    handler().then(res => history.push('/readers'));
+  const handleSubmitBorrow = (values: any) => {
+    setSubmitLoading(true);
   };
 
-  const setReaderFieldsValues = (id_card: string) => {
-    setLoading(true);
-    request.get(`/api/reader/${id_card}`).then(res => {
-      const fieldsValues = res.data.data || {};
-      form.setFieldsValue(fieldsValues);
-    }).finally(() => setLoading(false));
-  }
-
-  useEffect(() => {
-    if (query.id_card) {
-      setReaderFieldsValues(query.id_card);
+  const handleSearch = debounce((keyword: string, type: 'reader' | 'book') => {
+    switch(type) {
+      case 'reader':
+        setSearchReaderLoading(true);
+        break;
+      case 'book':
+        setSearchBookLoading(true);
+        break;
+      default: break;
     }
-  }, [query]);
+    request.post(`/api/${type}/search`, { keyword }).then(res => {
+      const items = res.data.data && res.data.data.items || [];
+      switch(type) {
+        case 'reader':
+          setReadersSearchResult(items);
+          break;
+        case 'book':
+          setBooksSearchResult(items);
+          break;
+        default: break;
+      }
+    }).finally(() => {
+      setSearchReaderLoading(false);
+      setSearchBookLoading(false);
+    });
+  }, 500);
 
   return (
     <PageContainer>
-      <Card loading={loading}>
+      <Card>
         <Form
           {...layout}
           form={form}
           name="basic"
           initialValues={{ remember: true }}
-          onFinish={handleSubmitReader}
+          onFinish={handleSubmitBorrow}
         >
           <Form.Item
-            label="姓名"
-            name="name"
-            rules={[{ required: true, message: '请输入读者姓名' }]}
+            label="借阅人"
+            name="reader"
+            rules={[{ required: true, message: '请选择借阅人' }]}
           >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="身份证号"
-            name="id_card"
-            rules={[{ required: true, message: '请输入读者身份证号' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item label="电话号码" name="phone">
-            <InputNumber style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item label="住址" name="address">
-            <Input />
-          </Form.Item>
-          <Form.Item label="性别" name="gender">
-            <Select>
-              <Select.Option value={0}>男</Select.Option>
-              <Select.Option value={1}>女</Select.Option>
+            <Select
+              placeholder="键入以搜索..."
+              showSearch={true}
+              loading={searchReaderLoading}
+              onSelect={() => setReadersSearchResult([])}
+              onSearch={(keyword: string) => handleSearch(keyword, 'reader')}
+            >
+              {
+                readersSearchResult.map(item =>
+                  <Select.Option
+                    key={item.id_card}
+                    value={item.id_card}
+                  >
+                    {item.name}, {item.id_card}
+                  </Select.Option>
+                )
+              }
             </Select>
           </Form.Item>
+          <Form.Item
+            label="图书"
+            name="reader"
+            rules={[{ required: true, message: '请选择图书' }]}
+          >
+            <Select
+              placeholder="键入以搜索..."
+              showSearch={true}
+              loading={searchBookLoading}
+              onSelect={() => setBooksSearchResult([])}
+              onSearch={(keyword: string) => handleSearch(keyword, 'book')}
+            >
+              {
+                booksSearchResult.map(item =>
+                  <Select.Option
+                    key={item.isbn}
+                    value={item.isbn}
+                  >
+                    {item.name}, {item.isbn}, {item.author}{item.publisher && `, ${item.publisher}`}
+                  </Select.Option>
+                )
+              }
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="归还日期"
+            name="return_date"
+            rules={[{ required: true, message: '请选择归还日期' }]}
+          >
+            <DatePicker
+              placeholder="打开日历并选择日期"
+              style={{ width: '100%' }}
+              disabledDate={currentDate => Date.now() > currentDate.startOf('day').valueOf()}
+            />
+          </Form.Item>
           <Form.Item {...tailLayout}>
-            <Button htmlType="submit" type="primary">确定</Button>
+            <Button htmlType="submit" type="primary" loading={submitLoading}>确定</Button>
             <Button style={{ marginLeft: 10 }} onClick={() => history.goBack()}>取消</Button>
           </Form.Item>
         </Form>
