@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Table, Button, Form, Input, Typography, DatePicker } from 'antd';
+import { Card, Table, Button, Form, Input, Typography, DatePicker, Popconfirm } from 'antd';
 import { request } from '@/utils';
 import { history } from 'umi';
 import styles from './styles.less';
@@ -26,7 +26,7 @@ export default (): React.ReactNode => {
     }).finally(() => setLoading(false));
   }
 
-  useEffect(() => {
+  const fetchAllRecords = () => {
     const { query } = location;
     const { page = '1', size = '10' } = query;
 
@@ -56,6 +56,10 @@ export default (): React.ReactNode => {
 
     form.setFieldsValue(formQueryParams);
     queryBorrowingRecords(parseInt(page), parseInt(size), queryParams);
+  }
+
+  useEffect(() => {
+    fetchAllRecords();
   }, [location.query]);
 
   const handlePaginationChange = (page: number, size: number | undefined) => {
@@ -105,6 +109,14 @@ export default (): React.ReactNode => {
       },
     });
   };
+
+  const handleConfirmReturnBook = (uuid: string) => {
+    request.delete(`/api/record/${uuid}`).then(res => {
+      if (res) {
+        fetchAllRecords();
+      }
+    })
+  }
 
   const columns = [
     {
@@ -188,9 +200,15 @@ export default (): React.ReactNode => {
 
         const renderExtra = () => {
           if (returned === 0 && new Date(Date.parse(returnDate)).valueOf() >= Date.now()) {
-            {/* TODO: 归还逻辑 */}
             return (
-              <Button type="link">归还</Button>
+              <Popconfirm
+                title="确认归还吗"
+                okText="确定"
+                cancelText="取消"
+                onConfirm={() => handleConfirmReturnBook(record['uuid'])}
+              >
+                <Button type="link">归还</Button>
+              </Popconfirm>
             );
           }
 
