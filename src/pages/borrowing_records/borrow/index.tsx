@@ -1,18 +1,37 @@
 import React, { useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Form, Button, Select, DatePicker } from 'antd';
+import { Card, Form, Button, Select, DatePicker, Divider, Typography, Alert } from 'antd';
 import { request } from '@/utils';
-import { history } from 'umi';
+import { history, Link } from 'umi';
 import debounce from 'lodash/debounce';
-// import styles from './styles.less';
+
+const { Text } = Typography;
 
 const layout = {
-  labelCol: { span: 8 },
-  wrapperCol: { span: 16 },
+  labelCol: {
+    xs: { span: 24 },
+    sm: { span: 24 },
+    md: { span: 4 },
+    lg: { span: 3 },
+    xl: { span: 2 },
+  },
+  wrapperCol: {
+    xs: { span: 24 },
+    sm: { span: 24 },
+    md: { span: 10 },
+    lg: { span: 8 },
+    xl: { span: 6 },
+  },
 };
 
 const tailLayout = {
-  wrapperCol: { offset: 8, span: 16 },
+  wrapperCol: {
+    xs: { offset: 0, span: 24 },
+    sm: { offset: 0, span: 24 },
+    md: { offset: 4, span: 20 },
+    lg: { offset: 3, span: 21 },
+    xl: { offset: 2, span: 22 },
+  },
 };
 
 export default (): React.ReactNode => {
@@ -22,9 +41,17 @@ export default (): React.ReactNode => {
   const [searchBookLoading, setSearchBookLoading] = useState<boolean>(false);
   const [readersSearchResult, setReadersSearchResult] = useState<Record<string, any>[]>([]);
   const [booksSearchResult, setBooksSearchResult] = useState<Record<string, any>[]>([]);
+  const [newBorrowingRecordInfo, setNewBorrowingRecordInfo] = useState<Record<string, any>>({});
 
   const handleSubmitBorrow = (values: any) => {
     setSubmitLoading(true);
+    values.return_date = values.return_date.startOf('day').toISOString();
+    request.post('/api/record', values).then(res => {
+      if (res) {
+        form.resetFields();
+        setNewBorrowingRecordInfo(res.data.data || {});
+      }
+    }).finally(() => setSubmitLoading(false));
   };
 
   const handleSearch = debounce((keyword: string, type: 'reader' | 'book') => {
@@ -57,6 +84,32 @@ export default (): React.ReactNode => {
   return (
     <PageContainer>
       <Card>
+        <div>
+          <Button type="link" onClick={() => history.push('/borrowing_records')}>借阅列表</Button>
+          <Button type="link" onClick={() => history.push('/books')}>图书列表</Button>
+        </div>
+        <Divider />
+        {
+          !!(newBorrowingRecordInfo && newBorrowingRecordInfo.uuid) && (
+            <Alert
+              type="success"
+              message="成功借出"
+              closable={true}
+              showIcon={true}
+              onClose={() => setNewBorrowingRecordInfo({})}
+              style={{ marginBottom: 20 }}
+              description={
+                <p>
+                  你提交的借阅单：
+                  {newBorrowingRecordInfo.reader.name}({newBorrowingRecordInfo.reader.id_card})
+                  &nbsp;-&nbsp;
+                  {newBorrowingRecordInfo.book.name}({newBorrowingRecordInfo.book.isbn}) 已成功借出，
+                  <Link to={`/borrowing_records/detail?uuid=${newBorrowingRecordInfo.uuid}`}>单击此处</Link>以查看借阅单详细信息。
+                </p>
+              }
+            />
+          )
+        }
         <Form
           {...layout}
           form={form}
@@ -66,14 +119,20 @@ export default (): React.ReactNode => {
         >
           <Form.Item
             label="借阅人"
-            name="reader"
+            name="id_card"
             rules={[{ required: true, message: '请选择借阅人' }]}
+            help={
+              <Text type="secondary">
+                若无法搜索到目标，则有可能是借阅人信息未录入。<Link to="/readers/info">立刻录入</Link>
+              </Text>
+            }
           >
             <Select
               placeholder="键入以搜索..."
               showSearch={true}
               loading={searchReaderLoading}
-              onSelect={() => setReadersSearchResult([])}
+              defaultActiveFirstOption={false}
+              filterOption={false}
               onSearch={(keyword: string) => handleSearch(keyword, 'reader')}
             >
               {
@@ -90,14 +149,20 @@ export default (): React.ReactNode => {
           </Form.Item>
           <Form.Item
             label="图书"
-            name="reader"
+            name="isbn"
             rules={[{ required: true, message: '请选择图书' }]}
+            help={
+              <Text type="secondary">
+                若无法搜索到目标，则有可能是图书信息未录入。<Link to="/books/settlein">立刻录入</Link>
+              </Text>
+            }
           >
             <Select
               placeholder="键入以搜索..."
               showSearch={true}
               loading={searchBookLoading}
-              onSelect={() => setBooksSearchResult([])}
+              defaultActiveFirstOption={false}
+              filterOption={false}
               onSearch={(keyword: string) => handleSearch(keyword, 'book')}
             >
               {

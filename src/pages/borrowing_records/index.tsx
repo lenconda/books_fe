@@ -190,9 +190,7 @@ export default (): React.ReactNode => {
           if (returned === 0 && new Date(Date.parse(returnDate)).valueOf() >= Date.now()) {
             {/* TODO: 归还逻辑 */}
             return (
-              <Button type="link">
-                <Typography.Text type="success">归还</Typography.Text>
-              </Button>
+              <Button type="link">归还</Button>
             );
           }
 

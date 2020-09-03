@@ -4,15 +4,32 @@ import { Card, Form, Input, Button, DatePicker } from 'antd';
 import { request } from '@/utils';
 import moment from 'moment';
 import { history } from 'umi';
-// import styles from './styles.less';
 
 const layout = {
-  labelCol: { span: 8 },
-  wrapperCol: { span: 16 },
+  labelCol: {
+    xs: { span: 24 },
+    sm: { span: 24 },
+    md: { span: 4 },
+    lg: { span: 3 },
+    xl: { span: 2 },
+  },
+  wrapperCol: {
+    xs: { span: 24 },
+    sm: { span: 24 },
+    md: { span: 10 },
+    lg: { span: 8 },
+    xl: { span: 6 },
+  },
 };
 
 const tailLayout = {
-  wrapperCol: { offset: 8, span: 16 },
+  wrapperCol: {
+    xs: { offset: 0, span: 24 },
+    sm: { offset: 0, span: 24 },
+    md: { offset: 4, span: 20 },
+    lg: { offset: 3, span: 21 },
+    xl: { offset: 2, span: 22 },
+  },
 };
 
 export default (): React.ReactNode => {

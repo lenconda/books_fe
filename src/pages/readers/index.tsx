@@ -3,7 +3,6 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Table, Button, Typography, Popconfirm, Form, Input, InputNumber } from 'antd';
 import { request } from '@/utils';
 import { history } from 'umi';
-import styles from './styles.less';
 
 export const genderMap = {
   '0': '男',
@@ -158,7 +157,7 @@ export default (): React.ReactNode => {
         <Form
           form={form}
           layout="inline"
-          className={styles['query-wrapper']}
+          className="query-wrapper"
           onFinish={handleQueryReaders}
         >
           <Form.Item name="name">

@@ -3,7 +3,6 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Table, Button, Typography, Popconfirm, Form, Input } from 'antd';
 import { request } from '@/utils';
 import { history } from 'umi';
-import styles from './styles.less';
 
 export default (): React.ReactNode => {
   const [bookItems, setBookItems] = useState<object[]>([]);
@@ -162,7 +161,7 @@ export default (): React.ReactNode => {
         <Form
           form={form}
           layout="inline"
-          className={styles['query-wrapper']}
+          className="query-wrapper"
           onFinish={handleQueryBooks}
         >
           <Form.Item name="name">
